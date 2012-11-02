@@ -881,6 +881,16 @@ commands.forEach(function (command) {
     Multi.prototype[command.toUpperCase()] = Multi.prototype[command];
 });
 
+RedisClient.prototype.zpop = RedisClient.prototype.ZPOP = function(key, withscores, callback) {
+  if (callback === undefined && typeof(withscores) === 'function') callback = withscores;
+  this.multi().
+    zrange(key, 0, 0, withscores).
+    zremrangebyrank(key, 0, 0).
+    exec(function(err, replies) {
+      if (callback) callback(err, replies ? replies[0] : null);
+    });
+};
+
 // store db in this.select_db to restore it on reconnect
 RedisClient.prototype.select = function (db, callback) {
 	var self = this;
